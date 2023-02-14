@@ -1,6 +1,10 @@
  import React from 'react';
  import {PostItem} from "./PostItem";
  import {PostType} from "../App";
+ import {
+     CSSTransition,
+     TransitionGroup,
+ } from 'react-transition-group';
 
 export type PostListPropsType = {
    post:PostType[]
@@ -18,14 +22,27 @@ export const PostList = (props:PostListPropsType) => {
 
     return (
        <div>
-           <h1 style={{textAlign:'center'}}>{props.title}</h1>
-           {
-               props.post.map((el, index)=>{
-                   return(
-                       <PostItem number={index + 1} post={el} key={el.id} removePost={props.removePost}/>
+           <h1 style={{textAlign:'center'}}>
+               {props.title}
+           </h1>
+           <TransitionGroup>
+               {props.post.map((el, index)=>
+                       <CSSTransition
+                           key={el.id}
+                           timeout={500}
+                           classNames="post"
+                       >
+                       <PostItem
+                               number={index + 1}
+                               post={el}
+                               // key={el.id}
+                               removePost={props.removePost}
+                           />
+                       </CSSTransition>
                    )
-               })
-           }
+               }
+           </TransitionGroup>
+
        </div>
     );
 };
