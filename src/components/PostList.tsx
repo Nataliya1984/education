@@ -9,6 +9,13 @@ export type PostListPropsType = {
 }
 
 export const PostList = (props:PostListPropsType) => {
+
+    if (!props.post){
+        return (
+            <h1 style={{textAlign: 'center'}}>Посты не существуют</h1>
+        )
+    }
+
     return (
        <div>
            <h1 style={{textAlign:'center'}}>{props.title}</h1>

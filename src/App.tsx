@@ -3,14 +3,20 @@ import {v1} from 'uuid';
 import './styles/App.css'
 import {PostList} from "./components/PostList";
 import {PostForm} from "./components/PostForm";
-import Select from "./components/UI/select";
-import {MyInput} from "./components/UI/Input/MyInput";
+import {PostFilter} from './components/UI/PostFilter';
+import {MyModal} from "./components/UI/Modal/MyModal";
+import {MyButton} from "./components/UI/button/MyButton";
 
 
 export type PostType = {
     id: string
     title: string
     body: string
+}
+
+export type FilteredPostType = {
+    sort: string
+    query: string
 }
 
 function App() {
@@ -20,29 +26,32 @@ function App() {
         {id: v1(), title: 'CSS', body: 'Vppppp'},
     ])
 
-    const [selectedSort, setSelectedSort] = useState<string>('')
-    // состояние для поиска
-    const [searchQuery, setSearchQuery] = useState('')
+
+    const [filter, setFilter] = useState<FilteredPostType>({sort: '', query: ''})
+
+    const [modal, setModal]=useState<boolean>(false)
 
     //для того, что бы сделать поиск необходимо сделать фильтрацию и удалять ненужные элементы из массива
     // const sortedPost =getSortedPost()
 
     const sortedPost = useMemo(() => {
         console.log('функция сорт отработала')
-        if (selectedSort) {
+        if (filter.sort) {
             return [...post.sort((a, b) => a > b ? 1 : -1)]
         } else {
             return post
         }
-    }, [selectedSort, post])
+    }, [filter.sort, post])
 
     const sortedAndSearchedPosts = useMemo(() => {
-        return sortedPost.filter(post => post.title.toLowerCase().includes(searchQuery))
-    }, [searchQuery, sortedPost])
+        return sortedPost.filter(post => post.title.toLowerCase().includes(filter.query))
+    }, [filter.query, sortedPost])
 
 
     const createPost = (newPost: any) => {
         setPost([...post, newPost])
+        // после создания поста, модалка скрывается
+        setModal(false)
     }
 
     const removePost = (posts: PostType) => {
@@ -50,45 +59,31 @@ function App() {
         console.log(post)
     }
 
-    //для сортировки
-    const onChangeHandler = (sort: string) => {
-        setSelectedSort(sort)
-        // вызываем функцию setPost, что бы туда передать отсортированный массив, но так как функция сорт не возвращает новый отсортированный массив мы должны делать копию и менять копию массива
-        // разварачиваем посты в новый массив [...post],   и отсортируем уже новый массив [...post].sort()
-        //setPost([...post.sort((a, b) => a > b ? 1 : -1)])
-    }
+    // //для сортировки
+    // const onChangeHandler = (sort: string) => {
+    //     setSelectedSort(sort)
+    //     // вызываем функцию setPost, что бы туда передать отсортированный массив, но так как функция сорт не возвращает новый отсортированный массив мы должны делать копию и менять копию массива
+    //     // разварачиваем посты в новый массив [...post],   и отсортируем уже новый массив [...post].sort()
+    //     //setPost([...post.sort((a, b) => a > b ? 1 : -1)])
+    // }
 
     return (
         <div className="App">
+            <MyButton style={{marginTop:'30px'}} onClick={()=>setModal(true)}>
+                Создать пост
+            </MyButton>
+            <MyModal visible={modal} setVisible={setModal}>
+                <PostForm callback={createPost}/>
+            </MyModal>
 
-            <PostForm callback={createPost}/>
             <hr style={{margin: '15px 0'}}/>
             {/*реализовываем поиск, находит нужный пост, остальные исчезают, добавим placheholder и сделаем инпут управляемым*/}
-            <MyInput placeholder={'поиск...'}
-                     value={searchQuery}
-                     onChange={(e: any) => {
-                         setSearchQuery(e.currentTarget.value)
-                     }}
+            <PostFilter filter={filter} setFilter={setFilter}/>
+
+            <PostList post={sortedAndSearchedPosts}
+                      title={'Список постов 1'}
+                      removePost={removePost}
             />
-
-            <Select defaultValue={'Сортировка по:'} option={[
-                {value: 'title', name: 'по названию'},
-                {value: 'body', name: 'по описанию'}
-            ]}
-                    onChange={onChangeHandler}
-                    value={selectedSort}
-            />
-
-            {
-                sortedAndSearchedPosts.length === 0
-                    ? <h1 style={{textAlign: 'center'}}>Посты не существуют</h1>
-                    : <PostList post={sortedAndSearchedPosts}
-                                title={'Список постов 1'}
-                                removePost={removePost}
-                    />
-            }
-
-
         </div>
     );
 }
