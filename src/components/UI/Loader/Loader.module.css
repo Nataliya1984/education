@@ -1,0 +1,22 @@
+.loader {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px dashed teal;
+/*    добавляем анимацию на класс и указываем, что функция анимации у нас будет линейной и при этом бесконечной*/
+    animation: rotate 1s infinite linear;
+}
+
+/*создаем анимацию*/
+@keyframes rotate {
+    /*начало анимации*/
+    /*помимо вращения делаем scale(1)*/
+    from {
+        transform: rotate(0deg) scale(1);
+    }
+    /*    конец анимации*/
+    /*к концу анимации увеличим окружность на 1,4 раза*/
+    to {
+        transform: rotate(360deg) scale(1.4);
+    }
+}
