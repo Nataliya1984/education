@@ -1,5 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {v1} from 'uuid';
+import React, {useEffect, useState} from 'react';
 import './styles/App.css'
 import {PostList} from "./components/PostList";
 import {PostForm} from "./components/PostForm";
@@ -9,6 +8,9 @@ import {MyButton} from "./components/UI/button/MyButton";
 import {usePosts} from "./hooks/usePost";
 import PostService from "./API/PostService";
 import {Loader} from "./components/UI/Loader/Loader";
+import {useFetching} from "./hooks/useFetching";
+import {getPageCount, getPagesArray} from "./utils/pages";
+import {Pagination} from "./components/UI/pagination/Pagination";
 
 
 export type PostType = {
@@ -42,8 +44,12 @@ function App() {
 
 
     const [filter, setFilter] = useState<FilteredPostType>({sort: '', query: ''})
-
     const [modal, setModal] = useState<boolean>(false)
+    //создаем состояние в котрое будем помещать общее колличество постов
+    const [totalPages, setTotalPages] = useState<number>(0)
+    //для лимита и для номера страницы создаем отдельное состояние
+    const [limit, setLimit] = useState<number>(5)
+    const [page, setPage] = useState<number>(1)
 
     //для того, что бы сделать поиск необходимо сделать фильтрацию и удалять ненужные элементы из массива
     // const sortedPost =getSortedPost()
@@ -64,11 +70,30 @@ function App() {
     // }, [filter.query, sortedPost])
 
     const sortedAndSearchedPosts = usePosts(post, filter.sort, filter.query)
-    const [isPostLoading, setPostLoading] = useState<boolean>(false)
+
+
+
+    //вместо этого состояния используем хук useFetching
+    // const [isPostLoading, setPostLoading] = useState<boolean>(false)
+    //поэтому вызываем хук useFetching, и туда необходимо передать некоторый callback, в нашем случае это будет ассинхронный колбэк
+    //остаетсся деструктуризировать то, что нам вернул хук useFetching: 1-ым параметром он нам возвращает функцию, 2-ым состояние за загрузку постов, 3-им за обработку ошибок
+    const [fetchPosts, isPostLoading, postError] = useFetching(async (limit:number, page:number) => {
+        //в нем необходимо сделать функционал, который у нас был. получить посты с сервера и засетать это состояник
+        const response = await PostService.getAll(limit, page);
+        setPost(response.data)
+        const totalCount = response.headers['x-total-count']
+        setTotalPages(getPageCount(totalCount, limit))
+    })
+
+    console.log(totalPages)
 
     useEffect(() => {
-        fetchPosts()
+        // 2-ой способ в саму функцию получения постов принимать лимит и пейж, и при вызове этой функции сюда соответственно передавать
+        fetchPosts(limit, page)
+        // fetchPosts()
     }, [])
+    //1 -ый способ, добавить в массив зависимостей page, что бы порции отображались как надо
+    // }, [])
 
 
     const createPost = (newPost: any) => {
@@ -77,18 +102,23 @@ function App() {
         setModal(false)
     }
 
-    //функция которая отправляет запрос на сервер, получает какие-то данные и помещает в наше состояние с постами
-    async function fetchPosts() {
-        setPostLoading(true)
-        //создаем переменную куда будет помещен результат выполнения запроса
-        const posts = await PostService.getAll();
-        setPost(posts)
-        setPostLoading(false)
-    }
+    //удаляем после того как функционал передали в созданный хук useFetching
+    // //функция которая отправляет запрос на сервер, получает какие-то данные и помещает в наше состояние с постами
+    // async function fetchPosts() {
+    //     setPostLoading(true)
+    //     //создаем переменную куда будет помещен результат выполнения запроса
+    //
+    //     setPostLoading(false)
+    // }
 
     const removePost = (posts: PostType) => {
         setPost(post.filter(el => el.id !== posts.id))
         console.log(post)
+    }
+
+    const changePage = (page: number) => {
+        setPage(page)
+        fetchPosts(limit, page)
     }
 
     // //для сортировки
@@ -101,6 +131,7 @@ function App() {
 
     return (
         <div className="App">
+            <Pagination page={page} changePage={changePage} totalPages={totalPages}/>
             <MyButton style={{marginTop: '30px'}} onClick={() => setModal(true)}>
                 Создать пост
             </MyButton>
@@ -111,8 +142,10 @@ function App() {
             <hr style={{margin: '15px 0'}}/>
             {/*реализовываем поиск, находит нужный пост, остальные исчезают, добавим placheholder и сделаем инпут управляемым*/}
             <PostFilter filter={filter} setFilter={setFilter}/>
+            {/*обработка ошибки, над списком постов делаем проверку и если есть ошибка, то выводить сообщение об ошибке*/}
+            {postError && <h1>Произошла ошибка ${postError} </h1>}
             {isPostLoading
-                ? <div style={{display:'flex', justifyContent:'center', marginTop:'50px'}}>
+                ? <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}>
                     <Loader/>
                 </div>
                 : <PostList post={sortedAndSearchedPosts}
@@ -120,7 +153,6 @@ function App() {
                             removePost={removePost}
                 />
             }
-
         </div>
     );
 }
