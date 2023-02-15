@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/App.css'
-import {PostType} from "../App";
 import { MyButton } from './UI/button/MyButton';
+import {PostType} from "../pages/Posts";
 
 
 type PostItemPropsType = {

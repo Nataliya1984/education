@@ -1,5 +1,5 @@
 import {useMemo} from "react";
-import {PostType} from "../App";
+import { PostType } from "../pages/Posts";
 
 
 //хук который занимается сортировкой

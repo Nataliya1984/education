@@ -1,7 +1,8 @@
 import React from 'react';
+import { FilteredPostType } from '../../pages/Posts';
 import {MyInput} from "./Input/MyInput";
 import Select from "./select";
-import {FilteredPostType} from "../../App";
+
 
 type PostFilterPropsType={
 filter:FilteredPostType
