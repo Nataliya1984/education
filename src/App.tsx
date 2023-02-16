@@ -12,10 +12,13 @@ return(
     <BrowserRouter>
         <Navbar/>
         <Routes>
-            <Route path='/posts' element={<Posts />}/>
-            <Route path='/about' element={<About />}/>
-            <Route path="/error" element={<ErrorPage/>}/>
-            <Route path="*" element={<Navigate to='error'/>}/>
+            <Route path='/' element={<Posts/>}/>
+            <Route path='/about' element={<About/>}/>
+            <Route path="404" element={
+                <ErrorPage/>
+            }
+            />
+            <Route path="*" element={<Navigate to='404'/>}/>
         </Routes>
     </BrowserRouter>
 )
