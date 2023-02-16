@@ -5,8 +5,8 @@ export const Navbar = () => {
     return (
         <div className={'navbar'}>
             <div className="navbar__links">
-                <NavLink to='/' style={{textDecoration:'none'}}>Посты</NavLink>
-                <NavLink to="/about" style={{textDecoration:'none'}}> О сайте </NavLink>
+                <NavLink to={'/'} style={{textDecoration:'none'}}>Посты</NavLink>
+                <NavLink to={'/about'} style={{textDecoration:'none'}}> О сайте </NavLink>
             </div>
         </div>
     );

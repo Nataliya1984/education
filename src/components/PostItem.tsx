@@ -2,6 +2,7 @@ import React from 'react';
 import '../styles/App.css'
 import { MyButton } from './UI/button/MyButton';
 import {PostType} from "../pages/Posts";
+import { useNavigate } from 'react-router-dom';
 
 
 type PostItemPropsType = {
@@ -12,8 +13,15 @@ type PostItemPropsType = {
 
 export const PostItem = (props:PostItemPropsType) => {
 
+    let navigate = useNavigate();
+    console.log(navigate)
+
     const removePostHandler = () => {
       props.removePost(props.post)
+    }
+
+    const openPosHandler = () => {
+        navigate(`/posts/${props.post.id}`)
     }
 
     return (
@@ -25,6 +33,7 @@ export const PostItem = (props:PostItemPropsType) => {
                 </div>
             </div>
             <div className="post__btns">
+                <MyButton onClick={openPosHandler} > Открыть </MyButton>
                 <MyButton onClick={removePostHandler} > Удалить </MyButton>
             </div>
         </div>
