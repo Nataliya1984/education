@@ -133,7 +133,7 @@ function Posts() {
 
     return (
         <div className="App">
-            <Pagination page={page} changePage={changePage} totalPages={totalPages}/>
+
             <MyButton style={{marginTop: '30px'}} onClick={() => setModal(true)}>
                 Создать пост
             </MyButton>
@@ -173,6 +173,7 @@ function Posts() {
             }
 
 
+            <Pagination page={page} changePage={changePage} totalPages={totalPages}/>
         </div>
     );
 }
