@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import '../styles/App.css'
 import {PostList} from "../components/PostList";
 import {PostForm} from "../components/PostForm";
@@ -11,6 +11,8 @@ import {Loader} from "../components/UI/Loader/Loader";
 import {useFetching} from "../hooks/useFetching";
 import {getPageCount, getPagesArray} from "../utils/pages";
 import {Pagination} from "../components/UI/pagination/Pagination";
+import {useObserver} from "../hooks/useObserver";
+import Select from "../components/UI/Select";
 
 
 export type PostType = {
@@ -48,7 +50,7 @@ function Posts() {
     //создаем состояние в котрое будем помещать общее колличество постов
     const [totalPages, setTotalPages] = useState<number>(0)
     //для лимита и для номера страницы создаем отдельное состояние
-    const [limit, setLimit] = useState<number>(5)
+    const [limit, setLimit] = useState<number|string>(5)
     const [page, setPage] = useState<number>(1)
 
     //для того, что бы сделать поиск необходимо сделать фильтрацию и удалять ненужные элементы из массива
@@ -70,34 +72,35 @@ function Posts() {
     // }, [filter.query, sortedPost])
 
     const sortedAndSearchedPosts = usePosts(post, filter.sort, filter.query)
-
-
+    const lastElement = useRef<any>()
 
     //вместо этого состояния используем хук useFetching
     // const [isPostLoading, setPostLoading] = useState<boolean>(false)
     //поэтому вызываем хук useFetching, и туда необходимо передать некоторый callback, в нашем случае это будет ассинхронный колбэк
     //остаетсся деструктуризировать то, что нам вернул хук useFetching: 1-ым параметром он нам возвращает функцию, 2-ым состояние за загрузку постов, 3-им за обработку ошибок
-    const [fetchPosts, isPostLoading, postError] = useFetching(async (limit:number, page:number) => {
+    const [fetchPosts, isPostLoading, postError] = useFetching(async (limit: number, page: number) => {
         //в нем необходимо сделать функционал, который у нас был. получить посты с сервера и засетать это состояник
         const response = await PostService.getAll(limit, page);
-        setPost(response.data)
+        setPost([...post, ...response.data])
         const totalCount = response.headers['x-total-count']
         setTotalPages(getPageCount(totalCount, limit))
     })
 
-    console.log(totalPages)
+    useObserver(lastElement, page<totalPages, isPostLoading, ()=>{
+        setPage(page + 1)
+    } )
 
     useEffect(() => {
         // 2-ой способ в саму функцию получения постов принимать лимит и пейж, и при вызове этой функции сюда соответственно передавать
         fetchPosts(limit, page)
         // fetchPosts()
-    }, [])
+    }, [page, limit])
     //1 -ый способ, добавить в массив зависимостей page, что бы порции отображались как надо
     // }, [])
 
 
     const createPost = (newPost: any) => {
-        setPost([...post, newPost])
+        setPost([newPost, ...post])
         // после создания поста, модалка скрывается
         setModal(false)
     }
@@ -118,7 +121,6 @@ function Posts() {
 
     const changePage = (page: number) => {
         setPage(page)
-        fetchPosts(limit, page)
     }
 
     // //для сортировки
@@ -142,17 +144,35 @@ function Posts() {
             <hr style={{margin: '15px 0'}}/>
             {/*реализовываем поиск, находит нужный пост, остальные исчезают, добавим placheholder и сделаем инпут управляемым*/}
             <PostFilter filter={filter} setFilter={setFilter}/>
+
+            <Select option={[
+                {value:5, name:'5'},
+                {value:10, name:'10'},
+                {value:25, name:'25'},
+                {value:-1, name:'показать все'},
+            ]}
+                    defaultValue={'колличество элементов на странице'}
+                    value={limit}
+                    onChange={el=>setLimit(el)}
+            />
+
             {/*обработка ошибки, над списком постов делаем проверку и если есть ошибка, то выводить сообщение об ошибке*/}
             {postError && <h1>Произошла ошибка ${postError} </h1>}
-            {isPostLoading
-                ? <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}>
+
+            <PostList post={sortedAndSearchedPosts}
+                      title={'Посты про JS'}
+                      removePost={removePost}
+            />
+
+            <div ref={lastElement} style={{height: '20px'}}/>
+
+            {isPostLoading &&
+                <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}>
                     <Loader/>
                 </div>
-                : <PostList post={sortedAndSearchedPosts}
-                            title={'Посты про JS'}
-                            removePost={removePost}
-                />
             }
+
+
         </div>
     );
 }

@@ -25,7 +25,7 @@ export const PostForm = ({callback}:PostFormPropsType) => {
 
     const addNewPost = (e:any) => {
         e.preventDefault()
-        const newPost = { ...posts, id:v1()}
+        const newPost = { id:v1(), ...posts}
         callback(newPost)
         setPosts({title: '', body: ''})
     }
